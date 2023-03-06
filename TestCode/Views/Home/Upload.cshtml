@@ -1,0 +1,22 @@
+﻿@model ResultViewModel
+
+<p>The extracted text is:</p>
+<p>@Model.ExtractedText</p>
+
+@if (Model.Values.Count > 0)
+{
+    <p>Occurrences of each value:</p>
+    <table>
+        <tr>
+            <th>Value</th>
+            <th>Count</th>
+        </tr>
+        @for (int i = 0; i < Model.Values.Count; i++)
+        {
+            <tr>
+                <td>@Model.Values[i]</td>
+                <td>@Model.Counts[i]</td>
+            </tr>
+        }
+    </table>
+}

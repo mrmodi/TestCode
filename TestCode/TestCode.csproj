@@ -26,7 +26,6 @@
 
   <ItemGroup>
     <Folder Include="TempFolder\" />
-    <Folder Include="Views\File\" />
   </ItemGroup>
 
 </Project>

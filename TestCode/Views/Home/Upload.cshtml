@@ -1,22 +1,81 @@
 ﻿@model ResultViewModel
-
-<p>The extracted text is:</p>
-<p>@Model.ExtractedText</p>
+@using System.IO
 
 @if (Model.Values.Count > 0)
 {
-    <p>Occurrences of each value:</p>
-    <table>
-        <tr>
-            <th>Value</th>
-            <th>Count</th>
-        </tr>
-        @for (int i = 0; i < Model.Values.Count; i++)
-        {
-            <tr>
-                <td>@Model.Values[i]</td>
-                <td>@Model.Counts[i]</td>
-            </tr>
-        }
-    </table>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-6 offset-md-3">
+                <div class="card shadow-lg">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Uploaded File Information</h5>
+                        <hr />
+                        <br />
+                        <div class="form-group">
+                            <label for="fileNameTextbox" class="form-label">File Name:</label>
+                            <div class="input-group">
+                                <input type="text" id="fileNameTextbox" class="form-control" value="@System.IO.Path.GetFileName(Model.FilePath)" readonly />
+                                
+                            </div>
+                        </div>
+                        <hr />
+                        <br />
+
+                        <div class="form-group">
+                            <label for="fileSize" class="form-label">File Size:</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="fileSize" value="@Model.FormattedFileSize" disabled>
+                                
+                            </div>
+                        </div>
+                        <hr />
+                        <br />
+
+                        <form>
+                            <div class="form-group">
+                                <label for="valueDropdown" class="form-label">Select a Prefix:</label>
+                                <select class="form-select" id="valueDropdown" name="selectedValue">
+                                    @if (Model.SelectedValue == null)
+                                    {
+                                        <option selected>select an option</option>
+                                        @foreach (var value in Model.Values)
+                                        {
+                                            <option value="@value">@value</option>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @foreach (var value in Model.Values)
+                                        {
+                                            if (value == Model.SelectedValue)
+                                            {
+                                                <option value="@value" selected>@value</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@value">@value</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </form>
+                        <hr />
+                        <br />
+                        <div class="form-group">
+                            <label for="averageConfidenceTextbox" class="form-label">Confidence Score:</label>
+                            <div class="input-group">
+                                <input type="text" id="averageConfidenceTextbox" class="form-control" value="@Model.AverageConfidence.ToString("0.00")" readonly />
+                               
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 }
+
+
+

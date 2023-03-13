@@ -6,6 +6,7 @@
     using System.Data;
     using Microsoft.Data.SqlClient;
     using System.Text.RegularExpressions;
+    
 
     namespace TestCode.Controllers
     {
@@ -106,21 +107,19 @@
                         file.CopyTo(stream);
                     }
 
-
-
-                    List<string> values = new List<string>();
-                    List<int> counts = new List<int>();
+                List<string> prefixList = new List<string>();
+                List<int> counts = new List<int>();
 
 
                 // Call a method to extract text data from the uploaded file using IronOCR
                 var text = ExtractTextFromUploadedFile(tempFilePath);
                 string extractedText = text.ToString();
 
-
+                // prefix dropdown
                 using (SqlConnection connection = new SqlConnection(connectionString))
                     {
                         connection.Open();
-                        string query = "SELECT  listtext " +
+                        string prefix_query = "SELECT listtext,name " +
                                         "FROM ( " +
                                         " SELECT DISTINCT t1.id, t1.listtext, t1.code, t1.refid, t1.score, t2.folder, t3.name " +
                                         " FROM lst_docname as t1 " +
@@ -134,19 +133,53 @@
                                         "ORDER BY subquery.folder ASC";
 
 
-                        SqlCommand command = new SqlCommand(query, connection);
+                        SqlCommand command = new SqlCommand(prefix_query, connection);
                         SqlDataReader reader = command.ExecuteReader();
 
                         while (reader.Read())
                         {
                             string value = reader.GetString(0);
-                            values.Add(value);
+                             prefixList.Add(value);
                         }
                         reader.Close();
                     }
 
 
-                    foreach (string value in values)
+                //folder dropdown
+                List<SelectListItem> folderList = new List<SelectListItem>();
+
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string folder_query = "SELECT  distinct name " +
+                                    "FROM ( " +
+                                    " SELECT DISTINCT t1.id, t1.listtext, t1.code, t1.refid, t1.score, t2.folder, t3.name " +
+                                    " FROM lst_docname as t1 " +
+                                    " LEFT JOIN tbl_doc_allocations_form_names as t2 ON t1.listtext = t2.prefix " +
+                                    " LEFT JOIN tbl_folder t3 ON t3.folder_id = folder " +
+                                    " WHERE t1.id = '12000' " +
+                                    " AND t1.listtext <> '' " +
+                                    " AND t2.deleted = 'false' " +
+                                    " AND t2.division = '12000' " +
+                                    ") AS subquery " +
+                                    "ORDER BY subquery.name ASC";
+
+
+                    SqlCommand command = new SqlCommand(folder_query, connection);
+                    SqlDataReader reader = command.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        string value = reader.GetString(0);
+                        folderList.Add(new SelectListItem { Text = value, Value = value });
+                    }
+                    reader.Close();
+                }
+              
+
+
+
+                foreach (string value in prefixList)
                     {
 
                         int count = Regex.Matches(extractedText, value, RegexOptions.IgnoreCase).Count;
@@ -155,23 +188,61 @@
                     }
 
                     int maxCount = counts.Max();
-                    List<string> maxValues = new List<string>();
-
-                    if (maxCount > 0)
+                    List<string> selectedPrefix = new List<string>();
+               
+                //selected prefix
+                if (maxCount > 0)
                     {
                         // Add only the values with the maximum count to a new list
                    
 
-                        for (int i = 0; i < values.Count; i++)
+                        for (int i = 0; i < prefixList.Count; i++)
                         {
                             if (counts[i] == maxCount)
                             {
-                                maxValues.Add(values[i]);
+                            selectedPrefix.Add(prefixList[i]);
                             }
                         }
                     }
 
-                    if (file.Length > 0)
+               
+                //folder for selected prefix
+                string selectedFolderQuery = "SELECT  name " +
+                                    "FROM ( " +
+                                    " SELECT DISTINCT t1.id, t1.listtext, t1.code, t1.refid, t1.score, t2.folder, t3.name " +
+                                    " FROM lst_docname as t1 " +
+                                    " LEFT JOIN tbl_doc_allocations_form_names as t2 ON t1.listtext = t2.prefix " +
+                                    " LEFT JOIN tbl_folder t3 ON t3.folder_id = folder " +
+                                    " WHERE t1.id = '12000' " +
+                                    " AND t1.listtext <> '' " +
+                                    " AND t2.deleted = 'false' " +
+                                    " AND t2.division = '12000' " +
+                                    " AND t1.listtext =  @param1 "+
+                                    ") AS subquery " +
+                                    "ORDER BY subquery.name ASC";
+
+                List<string> selectedFolder = new List<string>();
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    SqlCommand command = new SqlCommand(selectedFolderQuery, connection);
+                    if(maxCount > 0)
+                    command.Parameters.AddWithValue("@param1", selectedPrefix.FirstOrDefault());
+                    else
+                    command.Parameters.AddWithValue("@param1", "select an option");
+                    connection.Open();
+                    SqlDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        string name = reader.GetString(0);
+                        selectedFolder.Add(name);
+                    }
+                    reader.Close();
+                }
+
+
+
+
+                if (file.Length > 0)
                     {
                         // Get file size
                         long fileSizeInBytes = file.Length;
@@ -202,17 +273,19 @@
                     // Your existing code to save the uploaded file to a temporary location...
 
                     ResultViewModel viewModel = new ResultViewModel
-                        {
-                            ExtractedText = extractedText,
-                            Values = values,
-                            Counts = new List<int> { maxCount },
-                            FilePath = tempFilePath,
-                            AverageConfidence = averageConfidence,
-                            FileSize = fileSizeInBytes,
-                            FormattedFileSize = formattedFileSize, 
-                            SelectedValue = maxValues.FirstOrDefault()
-                            
-                        };
+                    {
+                        ExtractedText = extractedText,
+                        Prefix = prefixList,
+                        Folder = folderList,
+                        Counts = new List<int> { maxCount },
+                        FilePath = tempFilePath,
+                        AverageConfidence = averageConfidence,
+                        FileSize = fileSizeInBytes,
+                        FormattedFileSize = formattedFileSize,
+                        SelectedPrefix = selectedPrefix.FirstOrDefault(),
+                        SelectedFolder = selectedFolder
+                       
+                    };
 
 
                         return View(viewModel);

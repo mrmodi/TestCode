@@ -1,7 +1,7 @@
 ﻿@model ResultViewModel
 @using System.IO
 
-@if (Model.Values.Count > 0)
+@if (Model.Prefix.Count > 0)
 {
     <div class="container mt-5">
         <div class="row">
@@ -35,19 +35,19 @@
                             <div class="form-group">
                                 <label for="valueDropdown" class="form-label">Select a Prefix:</label>
                                 <select class="form-select" id="valueDropdown" name="selectedValue">
-                                    @if (Model.SelectedValue == null)
+                                    @if (Model.SelectedPrefix == null)
                                     {
                                         <option selected>select an option</option>
-                                        @foreach (var value in Model.Values)
+                                        @foreach (var value in Model.Prefix)
                                         {
                                             <option value="@value">@value</option>
                                         }
                                     }
                                     else
                                     {
-                                        @foreach (var value in Model.Values)
+                                        @foreach (var value in Model.Prefix)
                                         {
-                                            if (value == Model.SelectedValue)
+                                            if (value == Model.SelectedPrefix)
                                             {
                                                 <option value="@value" selected>@value</option>
                                             }
@@ -62,6 +62,28 @@
                         </form>
                         <hr />
                         <br />
+                       
+                        <form>
+                        <div class="form-group">
+                            <label for="valueDropdown" class="form-label">Select a folder:</label>
+
+                                @if (Model.SelectedFolder.Count == 0)
+                                {
+                                    @Html.DropDownListFor(model => model.SelectedPrefix, new SelectList(Model.Folder, "Value", "Text"), "select an option", new { @class = "form-select", @id = "valueDropdown" })
+                                }
+                                else
+                                {
+
+                                    @Html.DropDownListFor(model => model.SelectedPrefix, new SelectList(Model.Folder, "Value", "Text"), Model.SelectedFolder.FirstOrDefault(), new { @class = "form-select", @id = "valueDropdown" })
+                                }
+                          
+                        </div>
+                        </form>
+                        <hr />
+                        <br />
+                       
+
+
                         <div class="form-group">
                             <label for="averageConfidenceTextbox" class="form-label">Confidence Score:</label>
                             <div class="input-group">

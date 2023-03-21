@@ -82,12 +82,12 @@
 
 
 
-            [HttpPost]
-            public IActionResult Upload(IFormFile file)
+        [HttpPost]
+        public IActionResult Upload(IFormFile file)
+        {
+            if (file != null && file.Length > 0)
             {
-                if (file != null && file.Length > 0)
-                {
-
+                
                     var originalFileName = Path.GetFileName(file.FileName);
                     var fileExtension = Path.GetExtension(originalFileName);
 
@@ -107,16 +107,16 @@
                         file.CopyTo(stream);
                     }
 
-                List<string> prefixList = new List<string>();
-                List<int> counts = new List<int>();
+                    List<string> prefixList = new List<string>();
+                    List<int> counts = new List<int>();
 
 
-                // Call a method to extract text data from the uploaded file using IronOCR
-                var text = ExtractTextFromUploadedFile(tempFilePath);
-                string extractedText = text.ToString();
+                    // Call a method to extract text data from the uploaded file using IronOCR
+                    var text = ExtractTextFromUploadedFile(tempFilePath);
+                    string extractedText = text.ToString();
 
-                // prefix dropdown
-                using (SqlConnection connection = new SqlConnection(connectionString))
+                    // prefix dropdown
+                    using (SqlConnection connection = new SqlConnection(connectionString))
                     {
                         connection.Open();
                         string prefix_query = "SELECT listtext,name " +
@@ -139,47 +139,47 @@
                         while (reader.Read())
                         {
                             string value = reader.GetString(0);
-                             prefixList.Add(value);
+                            prefixList.Add(value);
                         }
                         reader.Close();
                     }
 
 
-                //folder dropdown
-                List<SelectListItem> folderList = new List<SelectListItem>();
+                    //folder dropdown
+                    List<SelectListItem> folderList = new List<SelectListItem>();
 
-                using (SqlConnection connection = new SqlConnection(connectionString))
-                {
-                    connection.Open();
-                    string folder_query = "SELECT  distinct name " +
-                                    "FROM ( " +
-                                    " SELECT DISTINCT t1.id, t1.listtext, t1.code, t1.refid, t1.score, t2.folder, t3.name " +
-                                    " FROM lst_docname as t1 " +
-                                    " LEFT JOIN tbl_doc_allocations_form_names as t2 ON t1.listtext = t2.prefix " +
-                                    " LEFT JOIN tbl_folder t3 ON t3.folder_id = folder " +
-                                    " WHERE t1.id = '12000' " +
-                                    " AND t1.listtext <> '' " +
-                                    " AND t2.deleted = 'false' " +
-                                    " AND t2.division = '12000' " +
-                                    ") AS subquery " +
-                                    "ORDER BY subquery.name ASC";
-
-
-                    SqlCommand command = new SqlCommand(folder_query, connection);
-                    SqlDataReader reader = command.ExecuteReader();
-
-                    while (reader.Read())
+                    using (SqlConnection connection = new SqlConnection(connectionString))
                     {
-                        string value = reader.GetString(0);
-                        folderList.Add(new SelectListItem { Text = value, Value = value });
+                        connection.Open();
+                        string folder_query = "SELECT  distinct name " +
+                                        "FROM ( " +
+                                        " SELECT DISTINCT t1.id, t1.listtext, t1.code, t1.refid, t1.score, t2.folder, t3.name " +
+                                        " FROM lst_docname as t1 " +
+                                        " LEFT JOIN tbl_doc_allocations_form_names as t2 ON t1.listtext = t2.prefix " +
+                                        " LEFT JOIN tbl_folder t3 ON t3.folder_id = folder " +
+                                        " WHERE t1.id = '12000' " +
+                                        " AND t1.listtext <> '' " +
+                                        " AND t2.deleted = 'false' " +
+                                        " AND t2.division = '12000' " +
+                                        ") AS subquery " +
+                                        "ORDER BY subquery.name ASC";
+
+
+                        SqlCommand command = new SqlCommand(folder_query, connection);
+                        SqlDataReader reader = command.ExecuteReader();
+
+                        while (reader.Read())
+                        {
+                            string value = reader.GetString(0);
+                            folderList.Add(new SelectListItem { Text = value, Value = value });
+                        }
+                        reader.Close();
                     }
-                    reader.Close();
-                }
-              
 
 
 
-                foreach (string value in prefixList)
+
+                    foreach (string value in prefixList)
                     {
 
                         int count = Regex.Matches(extractedText, value, RegexOptions.IgnoreCase).Count;
@@ -189,60 +189,60 @@
 
                     int maxCount = counts.Max();
                     List<string> selectedPrefix = new List<string>();
-               
-                //selected prefix
-                if (maxCount > 0)
+
+                    //selected prefix
+                    if (maxCount > 0)
                     {
                         // Add only the values with the maximum count to a new list
-                   
+
 
                         for (int i = 0; i < prefixList.Count; i++)
                         {
                             if (counts[i] == maxCount)
                             {
-                            selectedPrefix.Add(prefixList[i]);
+                                selectedPrefix.Add(prefixList[i]);
                             }
                         }
                     }
 
-               
-                //folder for selected prefix
-                string selectedFolderQuery = "SELECT  name " +
-                                    "FROM ( " +
-                                    " SELECT DISTINCT t1.id, t1.listtext, t1.code, t1.refid, t1.score, t2.folder, t3.name " +
-                                    " FROM lst_docname as t1 " +
-                                    " LEFT JOIN tbl_doc_allocations_form_names as t2 ON t1.listtext = t2.prefix " +
-                                    " LEFT JOIN tbl_folder t3 ON t3.folder_id = folder " +
-                                    " WHERE t1.id = '12000' " +
-                                    " AND t1.listtext <> '' " +
-                                    " AND t2.deleted = 'false' " +
-                                    " AND t2.division = '12000' " +
-                                    " AND t1.listtext =  @param1 "+
-                                    ") AS subquery " +
-                                    "ORDER BY subquery.name ASC";
 
-                List<string> selectedFolder = new List<string>();
-                using (SqlConnection connection = new SqlConnection(connectionString))
-                {
-                    SqlCommand command = new SqlCommand(selectedFolderQuery, connection);
-                    if(maxCount > 0)
-                    command.Parameters.AddWithValue("@param1", selectedPrefix.FirstOrDefault());
-                    else
-                    command.Parameters.AddWithValue("@param1", "select an option");
-                    connection.Open();
-                    SqlDataReader reader = command.ExecuteReader();
-                    while (reader.Read())
+                    //folder for selected prefix
+                    string selectedFolderQuery = "SELECT  name " +
+                                        "FROM ( " +
+                                        " SELECT DISTINCT t1.id, t1.listtext, t1.code, t1.refid, t1.score, t2.folder, t3.name " +
+                                        " FROM lst_docname as t1 " +
+                                        " LEFT JOIN tbl_doc_allocations_form_names as t2 ON t1.listtext = t2.prefix " +
+                                        " LEFT JOIN tbl_folder t3 ON t3.folder_id = folder " +
+                                        " WHERE t1.id = '12000' " +
+                                        " AND t1.listtext <> '' " +
+                                        " AND t2.deleted = 'false' " +
+                                        " AND t2.division = '12000' " +
+                                        " AND t1.listtext =  @param1 " +
+                                        ") AS subquery " +
+                                        "ORDER BY subquery.name ASC";
+
+                    List<string> selectedFolder = new List<string>();
+                    using (SqlConnection connection = new SqlConnection(connectionString))
                     {
-                        string name = reader.GetString(0);
-                        selectedFolder.Add(name);
+                        SqlCommand command = new SqlCommand(selectedFolderQuery, connection);
+                        if (maxCount > 0)
+                            command.Parameters.AddWithValue("@param1", selectedPrefix.FirstOrDefault());
+                        else
+                            command.Parameters.AddWithValue("@param1", "select an option");
+                        connection.Open();
+                        SqlDataReader reader = command.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            string name = reader.GetString(0);
+                            selectedFolder.Add(name);
+                        }
+                        reader.Close();
                     }
-                    reader.Close();
-                }
 
 
 
 
-                if (file.Length > 0)
+                    if (file.Length > 0)
                     {
                         // Get file size
                         long fileSizeInBytes = file.Length;
@@ -250,54 +250,55 @@
                         string formattedFileSize = FormatFileSize(fileSizeInBytes);
 
 
-                    var ocr = new IronTesseract();
-                    var result = ocr.Read(tempFilePath);
+                        var ocr = new IronTesseract();
+                        var result = ocr.Read(tempFilePath);
 
-                    double totalConfidence = 0.0;
-                    int characterCount = 0;
-                    foreach (var page in result.Pages)
-                    {
-                        foreach (var word in page.Words)
+                        double totalConfidence = 0.0;
+                        int characterCount = 0;
+                        foreach (var page in result.Pages)
                         {
-                            foreach (var character in word.Characters)
+                            foreach (var word in page.Words)
                             {
-                                totalConfidence += character.Confidence;
-                                characterCount++;
+                                foreach (var character in word.Characters)
+                                {
+                                    totalConfidence += character.Confidence;
+                                    characterCount++;
+                                }
                             }
                         }
-                    }
-                    //double averageConfidence = characterCount > 0 ? (totalConfidence / characterCount) / 100 : 0.00;
-                    double averageConfidence = (totalConfidence / characterCount) / 100;
+                        //double averageConfidence = characterCount > 0 ? (totalConfidence / characterCount) / 100 : 0.00;
+                        double averageConfidence = (totalConfidence / characterCount) / 100;
 
 
-                    // Your existing code to save the uploaded file to a temporary location...
+                        // Your existing code to save the uploaded file to a temporary location...
 
-                    ResultViewModel viewModel = new ResultViewModel
-                    {
-                        ExtractedText = extractedText,
-                        Prefix = prefixList,
-                        Folder = folderList,
-                        Counts = new List<int> { maxCount },
-                        FilePath = tempFilePath,
-                        AverageConfidence = averageConfidence,
-                        FileSize = fileSizeInBytes,
-                        FormattedFileSize = formattedFileSize,
-                        SelectedPrefix = selectedPrefix.FirstOrDefault(),
-                        SelectedFolder = selectedFolder
-                       
-                    };
+                        ResultViewModel viewModel = new ResultViewModel
+                        {
+                            ExtractedText = extractedText,
+                            Prefix = prefixList,
+                            Folder = folderList,
+                            Counts = new List<int> { maxCount },
+                            FilePath = tempFilePath,
+                            AverageConfidence = averageConfidence,
+                            FileSize = fileSizeInBytes,
+                            FormattedFileSize = formattedFileSize,
+                            SelectedPrefix = selectedPrefix.FirstOrDefault(),
+                            SelectedFolder = selectedFolder
+
+                        };
 
 
                         return View(viewModel);
                     }
-                }
-
-                    // Handle errors if the file is not valid
-                    return View("Error");
-                }
-
-        
-            private string FormatFileSize(long fileSizeInBytes)
+                
+            }
+            // Handle errors if the file is not valid
+            return View("Error");
+            }
+           
+      
+       
+        private string FormatFileSize(long fileSizeInBytes)
                 {
                     const int scale = 1024;
                     string[] orders = new string[] { "TB", "GB", "MB", "KB", "Bytes" };

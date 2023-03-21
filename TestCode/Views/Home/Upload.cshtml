@@ -3,101 +3,115 @@
 
 @if (Model.Prefix.Count > 0)
 {
-    <div class="container mt-5">
-        <div class="row">
-            <div class="col-md-6 offset-md-3">
-                <div class="card shadow-lg">
-                    <div class="card-body">
-                        <h5 class="card-title text-center">Uploaded File Information</h5>
-                        <hr />
-                        <br />
+    <table class="table">
+        <thead>
+            <tr>
+                <th>File Name</th>
+                <th>File Size</th>
+                <th>Select a Prefix</th>
+                <th>Select a Folder</th>
+                <th>Confidence Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@System.IO.Path.GetFileName(Model.FilePath)</td>
+                <td>@Model.FormattedFileSize</td>
+                <td>
+                    <form>
                         <div class="form-group">
-                            <label for="fileNameTextbox" class="form-label">File Name:</label>
-                            <div class="input-group">
-                                <input type="text" id="fileNameTextbox" class="form-control" value="@System.IO.Path.GetFileName(Model.FilePath)" readonly />
-                                
-                            </div>
-                        </div>
-                        <hr />
-                        <br />
-
-                        <div class="form-group">
-                            <label for="fileSize" class="form-label">File Size:</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="fileSize" value="@Model.FormattedFileSize" disabled>
-                                
-                            </div>
-                        </div>
-                        <hr />
-                        <br />
-
-                        <form>
-                            <div class="form-group">
-                                <label for="valueDropdown" class="form-label">Select a Prefix:</label>
-                                <select class="form-select" id="valueDropdown" name="selectedValue">
-                                    @if (Model.SelectedPrefix == null)
+                            <select class="form-select" id="valueDropdown" name="selectedValue">
+                                @if (Model.SelectedPrefix == null)
+                                {
+                                    <option selected>select an option</option>
+                                    @foreach (var value in Model.Prefix)
                                     {
-                                        <option selected>select an option</option>
-                                        @foreach (var value in Model.Prefix)
+                                        <option value="@value">@value</option>
+                                    }
+                                }
+                                else
+                                {
+                                    @foreach (var value in Model.Prefix)
+                                    {
+                                        if (value == Model.SelectedPrefix)
+                                        {
+                                            <option value="@value" selected>@value</option>
+                                        }
+                                        else
                                         {
                                             <option value="@value">@value</option>
                                         }
                                     }
-                                    else
-                                    {
-                                        @foreach (var value in Model.Prefix)
-                                        {
-                                            if (value == Model.SelectedPrefix)
-                                            {
-                                                <option value="@value" selected>@value</option>
-                                            }
-                                            else
-                                            {
-                                                <option value="@value">@value</option>
-                                            }
-                                        }
-                                    }
-                                </select>
-                            </div>
-                        </form>
-                        <hr />
-                        <br />
-                       
-                        <form>
-                        <div class="form-group">
-                            <label for="valueDropdown" class="form-label">Select a folder:</label>
-
-                                @if (Model.SelectedFolder.Count == 0)
-                                {
-                                    @Html.DropDownListFor(model => model.SelectedPrefix, new SelectList(Model.Folder, "Value", "Text"), "select an option", new { @class = "form-select", @id = "valueDropdown" })
                                 }
-                                else
-                                {
-
-                                    @Html.DropDownListFor(model => model.SelectedPrefix, new SelectList(Model.Folder, "Value", "Text"), Model.SelectedFolder.FirstOrDefault(), new { @class = "form-select", @id = "valueDropdown" })
-                                }
-                          
+                            </select>
                         </div>
-                        </form>
-                        <hr />
-                        <br />
-                       
-
-
+                    </form>
+                </td>
+                <td>
+                    <form>
                         <div class="form-group">
-                            <label for="averageConfidenceTextbox" class="form-label">Confidence Score:</label>
-                            <div class="input-group">
-                                <input type="text" id="averageConfidenceTextbox" class="form-control" value="@Model.AverageConfidence.ToString("0.00")" readonly />
-                               
-                            </div>
+                            @if (Model.SelectedFolder.Count == 0)
+                            {
+                                @Html.DropDownListFor(model => model.SelectedPrefix, new SelectList(Model.Folder, "Value", "Text"), "select an option", new { @class = "form-select", @id = "valueDropdown" })
+                            }
+                            else
+                            {
+                                @Html.DropDownListFor(model => model.SelectedPrefix, new SelectList(Model.Folder, "Value", "Text"), Model.SelectedFolder.FirstOrDefault(), new { @class = "form-select", @id = "valueDropdown" })
+                            }
                         </div>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+                    </form>
+                </td>
+                <td>@Model.AverageConfidence.ToString("0.00")</td>
+            </tr>
+        </tbody>
+    </table>
 }
 
+<style>
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+        background-color: transparent;
+        color: #212529;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
 
+    th,
+    td {
+        padding: 0.75rem;
+        vertical-align: top;
+        border-top: 1px solid #dee2e6;
+    }
 
+    thead th {
+        vertical-align: bottom;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    tbody + tbody {
+        border-top: 2px solid #dee2e6;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+    }
+
+    .form-select {
+        display: block;
+        width: 100%;
+        height: calc(2.25rem + 2px);
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.25

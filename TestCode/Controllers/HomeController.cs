@@ -1,16 +1,19 @@
-﻿    using IronOcr;
-    using Microsoft.AspNetCore.Mvc;
-    using System.Diagnostics;
-    using TestCode.Models;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using System.Data;
-    using Microsoft.Data.SqlClient;
-    using System.Text.RegularExpressions;
-    
+﻿using IronOcr;
+using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
+using TestCode.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Data;
+using Microsoft.Data.SqlClient;
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Identity.Client;
+using System.Dynamic;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
-    namespace TestCode.Controllers
-    {
-        public class HomeController : Controller
+namespace TestCode.Controllers
+{
+    public class HomeController : Controller
         {
             private readonly ILogger<HomeController> _logger;
 
@@ -295,9 +298,98 @@
             // Handle errors if the file is not valid
             return View("Error");
             }
-           
-      
-       
+
+
+
+        public IActionResult AdminPanel(string selectedFolderName)
+        {
+            List<SelectListItem> folderList = new List<SelectListItem>();
+            List<object> prefixList = new List<object>();
+
+            MyViewModel model = new MyViewModel();
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                // Get list of folders
+                string folder_query = "SELECT DISTINCT name " +
+                    "FROM ( " +
+                    "    SELECT DISTINCT t1.id, t1.listtext, t1.code, t1.refid, t1.score, t2.folder, t3.name " +
+                    "    FROM lst_docname AS t1 " +
+                    "    LEFT JOIN tbl_doc_allocations_form_names AS t2 ON t1.listtext = t2.prefix " +
+                    "    LEFT JOIN tbl_folder t3 ON t3.folder_id = t2.folder " +
+                    "    WHERE t1.id = '12000' " +
+                    "    AND t1.listtext <> '' " +
+                    "    AND t2.deleted = 'false' " +
+                    "    AND t2.division = '12000' " +
+                    ") AS subquery " +
+                    "ORDER BY subquery.name ASC";
+
+                SqlCommand command = new SqlCommand(folder_query, connection);
+                SqlDataReader reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    string value = reader.GetString(0);
+                    folderList.Add(new SelectListItem { Text = value, Value = value });
+                }
+                reader.Close();
+
+                // Get prefixes for selected folder
+                if (!string.IsNullOrEmpty(selectedFolderName))
+                {
+                    prefixList = GetPrefixesForFolder(connection, selectedFolderName);
+                }
+            }
+
+            ViewBag.FolderList = folderList;
+            ViewBag.PrefixList = prefixList;
+
+            return View("Admin");
+        }
+
+        private List<object> GetPrefixesForFolder(SqlConnection connection, string folderName)
+        {
+            List<object> prefixList = new List<object>();
+
+            string prefix_query = "SELECT listtext,name " +
+                "FROM ( " +
+                "    SELECT DISTINCT t1.id, t1.listtext, t1.code, t1.refid, t1.score, t2.folder, t3.name " +
+                "    FROM lst_docname AS t1 " +
+                "    LEFT JOIN tbl_doc_allocations_form_names AS t2 ON t1.listtext = t2.prefix " +
+                "    LEFT JOIN tbl_folder t3 ON t3.folder_id = t2.folder " +
+                "    WHERE t1.id = '12000' " +
+                "    AND t1.listtext <> '' " +
+                "    AND t2.deleted = 'false' " +
+                "    AND t2.division = '12000' " +
+                $"    AND t3.name = '{folderName}' " +
+                ") AS subquery " +
+                "ORDER BY subquery.listtext ASC";
+
+            using (SqlCommand cmd = new SqlCommand(prefix_query, connection))
+            {
+                SqlDataReader prefixReader = cmd.ExecuteReader();
+
+                while (prefixReader.Read())
+                {
+                    var prefix = new
+                    {
+                        listtext = prefixReader.GetString(0),
+                        name = prefixReader.GetString(1)
+                    };
+                    prefixList.Add(prefix);
+                }
+                prefixReader.Close();
+            }
+
+            return prefixList;
+        }
+
+
+
+
+
         private string FormatFileSize(long fileSizeInBytes)
                 {
                     const int scale = 1024;

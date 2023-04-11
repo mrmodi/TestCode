@@ -16,5 +16,7 @@ namespace TestCode.Models
         public string SelectedPrefix { get; internal set; }
          public List<string> SelectedFolder { get;  set; }
         public List<SelectListItem> Folder { get; internal set; }
+
+        public List<string> UploadedFiles { get; set; }
     }
 }

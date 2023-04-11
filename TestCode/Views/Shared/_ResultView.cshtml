@@ -15,55 +15,55 @@
         <tbody>
             @foreach (var viewModel in Model)
             {
-                <tr>
+            <tr>
                     <td>@System.IO.Path.GetFileName(viewModel.FilePath)</td>
                     <td>@viewModel.FormattedFileSize</td>
-                    <td>
-                        <form>
-                            <div class="form-group">
-                                <select class="form-select" id="valueDropdown" name="selectedValue">
+                <td>
+                    <form>
+                        <div class="form-group">
+                            <select class="form-select" id="valueDropdown" name="selectedValue">
                                     @if (viewModel.SelectedPrefix == null)
-                                    {
-                                        <option selected>select an option</option>
+                                {
+                                    <option selected>select an option</option>
                                         @foreach (var value in viewModel.Prefix)
+                                    {
+                                        <option value="@value">@value</option>
+                                    }
+                                }
+                                else
+                                {
+                                        @foreach (var value in viewModel.Prefix)
+                                    {
+                                            if (value == viewModel.SelectedPrefix)
+                                        {
+                                            <option value="@value" selected>@value</option>
+                                        }
+                                        else
                                         {
                                             <option value="@value">@value</option>
                                         }
                                     }
-                                    else
-                                    {
-                                        @foreach (var value in viewModel.Prefix)
-                                        {
-                                            if (value == viewModel.SelectedPrefix)
-                                            {
-                                                <option value="@value" selected>@value</option>
-                                            }
-                                            else
-                                            {
-                                                <option value="@value">@value</option>
-                                            }
-                                        }
-                                    }
-                                </select>
-                            </div>
-                        </form>
-                    </td>
-                    <td>
-                        <form>
-                            <div class="form-group">
+                                }
+                            </select>
+                        </div>
+                    </form>
+                </td>
+                <td>
+                    <form>
+                        <div class="form-group">
                                 @if (viewModel.SelectedFolder.Count == 0)
-                                {
+                            {
                                     @Html.DropDownListFor(model => viewModel.SelectedPrefix, new SelectList(viewModel.Folder, "Value", "Text"), "select an option", new { @class = "form-select", @id = "valueDropdown" })
-                                }
-                                else
-                                {
+                            }
+                            else
+                            {
                                     @Html.DropDownListFor(model => viewModel.SelectedPrefix, new SelectList(viewModel.Folder, "Value", "Text"), viewModel.SelectedFolder.FirstOrDefault(), new { @class = "form-select", @id = "valueDropdown" })
-                                }
-                            </div>
-                        </form>
-                    </td>
+                            }
+                        </div>
+                    </form>
+                </td>
                     <td>@viewModel.AverageConfidence.ToString("0.00")</td>
-                </tr>
+            </tr>
             }
         </tbody>
     </table>

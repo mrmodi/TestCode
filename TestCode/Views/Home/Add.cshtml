@@ -1,0 +1,72 @@
+﻿
+<head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        input[type="hidden"], label {
+            display: none;
+        }
+
+        form {
+            width: 100%;
+            margin: 20px auto;
+        }
+
+        input[type="text"] {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        button[type="button"] {
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            padding: 10px 16px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            button[type="button"]:hover {
+                background-color: #45a049;
+            }
+    </style>
+</head>
+
+<h2>Add Prefix Rule for @ViewBag.ListText</h2>
+
+<form id="addPrefixForm">
+    <input type="hidden" id="listtext" name="listtext" value="@ViewBag.ListText" />
+    <input type="hidden" id="prefix_id" name="prefix_id" value="@ViewBag.PrefixId" />
+    <div>
+        <label for="prefixRule">Prefix rule:</label>
+        <input type="text" id="prefixRule" name="prefixRule" />
+    </div>
+    <button type="button" id="addRuleButton">Add Rule</button>
+</form>
+
+<script>
+    $(document).ready(function () {
+        $("#addRuleButton").click(function () {
+            var prefixRule = $("#prefixRule").val();
+            var listtext = $("#listtext").val();
+            var prefix_id = $("#prefix_id").val();
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("Insert", "Home")",
+                data: { prefixRule: prefixRule, listtext: listtext, prefix_id: prefix_id },
+                success: function (data) {
+                    alert("Rule added successfully");
+                    window.location.href = '@Url.Action("AdminPanel", "Home")';
+                },
+                error: function () {
+                    alert("An error occurred while adding the rule");
+                }
+            });
+        });
+    });
+</script>

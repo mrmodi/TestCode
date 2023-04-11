@@ -1,11 +1,25 @@
 ﻿@{
+    Layout = "_Layout";
     ViewData["Title"] = "Admin";
+  
 }
+@using Microsoft.AspNetCore.Mvc.Rendering
+
 
 <head>
     <meta charset="utf-8">
     <title>jQuery - $ is not defined</title>
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Popper.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.3/umd/popper.min.js"></script>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+   
 
     <style>
         /* CSS for dropdown */
@@ -15,16 +29,17 @@
             border-radius: 5px;
             font-size: 16px;
             color: #555;
+            margin-bottom: 20px;
         }
 
         /* CSS for table */
         table {
             border-collapse: collapse;
             width: 100%;
-            margin-top: 20px;
         }
 
-            table th, table td {
+            table th,
+            table td {
                 text-align: left;
                 padding: 8px;
                 border: 1px solid #ddd;
@@ -51,6 +66,13 @@
                 table td a:hover {
                     text-decoration: underline;
                 }
+
+        /* Style for edit link */
+        .edit-link {
+            color: blue;
+            margin-right: 10px;
+        }
+
 
     </style>
 </head>
@@ -91,9 +113,12 @@
                 <td>@prefix.listtext</td>
                 <td>@prefix.name</td>
                 <td>
-                    <a href="#">Add</a> |
-                    <a href="#">Edit</a> |
-                    <a href="#">Delete</a>
+                    <a href="@Url.Action("Add", "Home", new { listtext = prefix.listtext, prefix_id = prefix.prefix_id })" class="edit-link add-link-modal">Add</a> |
+
+                    <a href="@Url.Action("Edit", "Home", new { listtext = prefix.listtext })" class="edit-link edit-link-modal">Edit</a>  |
+
+                    <a href="@Url.Action("Delete", "Home", new { listtext = prefix.listtext })" class="edit-link delete-link-modal">Delete</a>
+
                 </td>
             </tr>
         }
@@ -101,8 +126,70 @@
 
 </table>
 
+<!-- Bootstrap modal box for adding prefixes -->
+
+<div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addModalLabel">Add Prefix Rule</h5>
+                    <button type="button" id="closeAddModalBtn" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Form for adding a prefix goes here -->
+                @Url.Action("Add", "Home")
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Edit Prefix Rule</h5>
+                    <button type="button" id="closeEditModalBtn" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Form for editing a prefix goes here -->
+                @Url.Action("Edit", "Home")
+            </div>
+           
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete Prefix Rule</h5>
+                    <button type="button" id="closeDeleteModalBtn" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Form for editing a prefix goes here -->
+                @Url.Action("Delete", "Home")
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+
 <script>
+
     $(document).ready(function () {
+
         // When the folder select dropdown is changed
         $('#folderSelect').on('change', function () {
             var selectedFolder = $(this).val();
@@ -114,8 +201,113 @@
                 success: function (data) {
                     // Replace the contents of the table body with the updated HTML
                     $('#prefixTable').html($(data).find('#prefixTable').html());
+
+                    // Add a click event listener to the "Add" link
+                    $('.add-link-modal').click(function (e) {
+                        e.preventDefault();
+
+                        // Make an AJAX request to get the form for adding a prefix
+                        $.ajax({
+                            url: $(this).attr('href'),
+                            method: 'GET',
+                            success: function (data) {
+                                // Replace the contents of the modal body with the form HTML
+                                $('#addModal .modal-body').html(data);
+
+                                // Show the modal box
+                                $('#addModal').modal('show');
+                            }
+                        });
+                    });
+
+                    $('.edit-link-modal').click(function (e) {
+                        e.preventDefault();
+
+                        // Make an AJAX request to get the form for editing a prefix
+                        $.ajax({
+                            url: $(this).attr('href'),
+                            method: 'GET',
+                            success: function (data) {
+                                // Replace the contents of the modal body with the form HTML
+                                $('#editModal .modal-body').html(data);
+
+                                // Show the modal box
+                                $('#editModal').modal('show');
+                            }
+                        });
+                    });
+
+                    // Add a click event listener to the "Delete" link
+                    $('.delete-link-modal').click(function (e) {
+                        e.preventDefault();
+
+                        // Make an AJAX request to get the form for deleting a prefix
+                        $.ajax({
+                            url: $(this).attr('href'),
+                            method: 'GET',
+                            success: function (data) {
+                                // Replace the contents of the modal body with the form HTML
+                                $('#deleteModal .modal-body').html(data);
+
+                                // Show the modal box
+                                $('#deleteModal').modal('show');
+                            }
+                        });
+                    });
                 }
             });
+
+        });
+
+    });
+
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Get the button element
+        const closeModalBtn = document.querySelector('#closeAddModalBtn');
+
+        // Add an event listener to the button
+        closeModalBtn.addEventListener('click', () => {
+            // Get the modal element
+            const addModal = document.querySelector('#addModal');
+
+
+            // Close the modal
+            addModal.style.display = 'none';
+            window.location.href = '@Url.Action("AdminPanel", "Home")';
         });
     });
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        // Get the button element
+        const closeModalBtn = document.querySelector('#closeEditModalBtn');
+
+        // Add an event listener to the button
+        closeModalBtn.addEventListener('click', () => {
+            // Get the modal element
+            const editModal = document.querySelector('#editModal');
+
+            // Close the modal
+            editModal.style.display = 'none';
+            window.location.href = '@Url.Action("AdminPanel", "Home")';
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Get the button element
+        const closeModalBtn = document.querySelector('#closeDeleteModalBtn');
+
+        // Add an event listener to the button
+        closeModalBtn.addEventListener('click', () => {
+            // Get the modal element
+            const editModal = document.querySelector('#deleteModal');
+
+            // Close the modal
+            editModal.style.display = 'none';
+            window.location.href = '@Url.Action("AdminPanel", "Home")';
+        });
+    });
+
 </script>
+

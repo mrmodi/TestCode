@@ -8,5 +8,7 @@ namespace TestCode.Models
        
         public List<SelectListItem> ListItems { get; set; }
         public string SelectedListItem { get; set; }
+
+        public ResultViewModel Result { get; set; }
     }
 }

@@ -1,15 +1,18 @@
-﻿@{
+﻿
+
+@{
     ViewBag.Title = "Delete Alias";
 }
 
 <h2>Delete Alias</h2>
 
 <p>Please select the alias name to delete:</p>
+   
+  @using (Html.BeginForm("ConfirmDelete", "Home", FormMethod.Post))
+    {
+        @Html.Hidden("ListText", (string)ViewBag.ListText)
+        @Html.DropDownList("AliasName", (List<SelectListItem>)ViewBag.AliasNames, new { @class = "form-control" })
+        <br />
+        <input type="submit" value="Delete" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this alias?')" />
 
-@using (Html.BeginForm("ConfirmDelete", "Home", FormMethod.Post))
-{
-    @Html.DropDownList("AliasName", (List<SelectListItem>)ViewBag.AliasNames, new { @class = "form-control" })
-    <br />
-    <input type="submit" value="Delete" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this alias?')" />
-
-}
+    }

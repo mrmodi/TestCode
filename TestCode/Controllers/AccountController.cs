@@ -14,7 +14,7 @@ namespace TestCode.Controllers
         {
             _logger = logger;
         }
-        private readonly string _connectionString; // define the connection string
+       // private readonly string _connectionString; // define the connection string
 
         
 
@@ -50,8 +50,9 @@ namespace TestCode.Controllers
 
                     if (count == 1)
                     {
+                        TempData["username"] = model.UserName;
                         // If the user is an executive, log them in and redirect to the home page
-                        return RedirectToAction("AdminPanel", "Home");
+                        return RedirectToAction("AdminPanel", "Home" );
                     }
                     else
                     {

@@ -1,5 +1,9 @@
 ﻿@model List<ResultViewModel>
 
+<head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
 @if (Model != null && Model.Count > 0)
 {
     <table class="table">
@@ -67,6 +71,11 @@
             }
         </tbody>
     </table>
+
+    <div class="button-group">
+        <button id="saveBtn" class="btn btn-primary">Save</button>
+        <button class="btn btn-secondary" id="cancel-btn">Cancel</button>
+    </div>
 }
 
 
@@ -120,3 +129,40 @@
         border-radius: 0.25px;
     }
 </style>
+
+    <script>
+    $(document).ready(function () {
+        $('#saveBtn').on('click', function () {
+            saveData();
+        });
+    });
+
+    function saveData() {
+        // Get data from the table
+        var data = [];
+        $('table tbody tr').each(function () {
+            var row = {};
+            row.FileName = $(this).find('td:nth-child(1)').text();
+            row.FileSize = $(this).find('td:nth-child(2)').text();
+            row.SelectedPrefix = $(this).find('td:nth-child(3) select').val();
+            row.SelectedFolder = $(this).find('td:nth-child(4) select').val();
+            row.ConfidenceScore = $(this).find('td:nth-child(5)').text();
+            data.push(row);
+        });
+
+        // Send data to the server using AJAX
+        $.ajax({
+            url: '@Url.Action("SaveData", "Home")',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (result) {
+                alert('Data saved successfully.');
+            },
+            error: function () {
+                alert('Error while saving data.');
+            }
+        });
+    }
+
+    </script>

@@ -1,3 +1,8 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using TestCode;
+using TestCode.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,8 +10,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession();
 
-var app = builder.Build();
+builder.Services.AddDbContext<LogDbContext>(options =>
+   options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddLogging(loggingBuilder =>
+{
+    loggingBuilder.ClearProviders();
+    loggingBuilder.AddFile("C:/Users/manan/OneDrive/Desktop/Sem 4/Capstone Project/TestCode/TestCode/LogFiles/myapp-{Date}.txt",
+        isJson: false,
+        minimumLevel: LogLevel.Information,
+        fileSizeLimitBytes: null,
+        retainedFileCountLimit: null);
+
+});
+
+var app = builder.Build();
 
 
 // Configure the HTTP request pipeline.
@@ -19,13 +37,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
 
 app.UseSession();
-
-
-
 
 app.UseAuthorization();
 

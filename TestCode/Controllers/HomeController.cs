@@ -855,30 +855,6 @@ namespace TestCode.Controllers
             }
         }
 
-        [HttpPost]
-        public JsonResult SaveData(List<ResultViewModel> data)
-        {
-            try
-            {
-                // Save data to the database
-                foreach (var row in data)
-                {
-                    // Code to save data to the database
-                }
-
-                return Json(new { success = true });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-
-
-
-
-
         public ActionResult Delete(string listtext, int id)
         {
             string connectionString = _config.GetConnectionString("DefaultConnection");
